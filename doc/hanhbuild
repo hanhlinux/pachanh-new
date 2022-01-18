@@ -1,0 +1,36 @@
+hanhbuild - pachanh package builder
+
+============================================================
+Usage: hanhbuild [options] 
+Available options: 
+--help                                    Print this message
+--config=<path to config>                 Use a alternative config
+--sysroot=<path to dir>                   Use a alternative system root
+--buildfile=<path to buildfile>           Use a alternative build file
+--downloader=<command>                    Use command to install
+Build options
+--flag=<flag>                             Use build flag (only with compiling)
+--clean                                   Clean all current work and package directory
+--no-unpack                               Use current work directory
+--repack                                  Make a package using current work directory
+--no-archive                              Do not create tarball archive
+--no-download                             Disable download sources
+--build-deps                              Build runtime depends
+--disable-depends                         Skip dependencies check
+
+
+The binary will check the dependencies, required binaries and libraries
+or make dependencies. Then it will fetch the remote files, run the 
+specified functions in the build file and create a package archive from the $pkgdir
+=============================================================
+/etc/hanhbuild.conf
+Available variables: 
+sysroot             System root
+downloader          Download command
+buildfile           Default build file
+HANH_BINDIR         Binary search directories
+HANH_LIBDIR         Library search directories
+hanhdir             build directory
+workdir             compile directory
+pkgdir              package direcotry
+Also, compiling variables such as CFLAGS, CC can be added to this file.

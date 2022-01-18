@@ -1,0 +1,68 @@
+buildhanh - pachanh package build file
+
+The build file will have structure like this. 
+
+===============================================================
+> buildhanh
+===============================================================
+name=example
+ver=version
+desc="Example package description"
+home="https://www.example.org/"
+depends="depend1 depend2 depend3"
+makedeps="depend4 depend5 depend6"
+build_bin="binary1 binary2 binary3"
+lib="lib1.so lib2.a lib3.o"
+sources="https://www.example.org/$name-$ver.tar.gz"
+contain="example-smaller"
+
+needed="$name-$ver.tar.gz file1"
+build_flag=""
+
+unpack-pkg(){
+cd $workdir
+tar -xf $hanhdir/$name-$ver.tar.gz
+cp -r $hanhdir/file1 
+}
+
+compile-pkg(){
+cd $workdir/$name-$ver/
+# Package with GNU autotools: ./configure --prefix=/usr
+make
+}
+
+make-pkg(){
+cd $workdir/$name-$ver/
+make PREFIX="/usr" install
+install -Dm644 $workdir/file1 $pkgdir/usr/share/$name-$ver/file1
+}
+
+================================================================
+
+Explaining variables: 
+name                             Package name
+ver                              Package version
+desc                             Package description
+home                             Package homepage
+depends                          Package runtime dependencies
+makedeps                         Package make dependencies
+build_bin                        Binaries for building package
+lib                              Package runtime libraries
+sources                          Remote source files
+needed                           Necessary files
+build_flag                       Information for available build flags
+ignore_files                     Ignore files 
+hanhdir,workdir,pkgdir           Check out hanhbuild in the docs 
+
+Explaining functions: 
+unpack-pkg()                     Preparing for the package build 
+compile-pkg()                    Compiling the package
+make-pkg()                       Creating the package archive
+
+Notes: 
+1. name, ver, desc and make-pkg() are required in build file.
+2. compile-pkg(): 
+hanhbuild now supports build flags (release 1.1 on 15/10/2021).
+If package features can be modified, the build file is recommended to split to several flags. The flag syntax must be compile-pkg_<flag>() or it won't be found by hanhbuild
+3. make-pkg(): 
+make-pkg() supports split packages. They must follow the syntax make-pkg_<package>() 
