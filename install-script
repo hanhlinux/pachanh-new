@@ -20,7 +20,7 @@ cp -r scripts/hanhbuild out/hanhbuild
 
 sed "s|sysroot|$SYSROOT|g" -i out/hanh.conf
 sed "s|CONFDIR|$CONFDIR|g" -i out/wrapper out/hanh.conf out/hanhbuild
-sed "s|prefix|$PREFIX|g" -i out/hanh.c
+sed "s|prefix|$PREFIX|g" -i out/hanh.c out/hanh.conf
 eval $CC -o out/hanh out/hanh.c
 }
 
