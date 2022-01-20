@@ -1,1 +1,97 @@
-CONFDIR
+#!/bin/sh
+err() {
+echo "ERROR: $@"
+}
+
+die() {
+err "$@"
+exit 1
+}
+
+check_deps() {
+DEPS="$@"
+for dep in DEPS; do
+	if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
+		die "$dep not found!"
+	fi
+done
+}
+
+check_mkdeps() {
+check_deps "$@"
+}
+
+check_contain() {
+cd $pkgdir/var/lib/pachanh/system
+for x in "$@"; do
+	ln -sf $name $x 
+done
+}
+
+gen_db() {
+echo "$name-$ver" >  data
+echo "	$desc"    >> data
+}
+
+gen_info() {
+info="${1}"
+echo "Name: $name" >> $info
+echo "Version: $ver" >> $info
+echo "Description: $desc" >> $info
+echo "Depends: $depends" >> $info
+echo "Contain: $contain" >> $info 
+echo "Homepage: $home" >> $info
+echo "License: $license" >> $info
+}
+
+gen_filelist() {
+FILELIST="${1}"
+cd "${pkgdir}"
+find * | tee $FILELIST > /dev/null 2>&1
+}
+
+gen_header() {
+HEADER="${1}"
+echo "name=\"$name\"" >> $HEADER
+echo "version=\"$ver\"" >> $HEADER
+echo "desc=\"$desc\"" >> $HEADER
+echo "depends=\"$depends\"" >> $HEADER
+echo "contain=\"$contain\"" >> $HEADER
+echo "config=\"$config\"" >> $HEADER
+echo "pkg_infodir=\"var/lib/pachanh/system/$name\"" >> $HEADER 
+}
+
+build() {
+if test -z "$buildfile"; then
+	buildfile=buildhanh
+fi
+. $buildfile || die "$buildfile not found"
+
+if test -f .buildinfo; then 	
+	. .buildinfo || die "Failed to run buildinfo"
+fi
+
+if test -z "$task"; then
+	task="unpack compile mkpkg" 
+fi
+
+if test -n "$flag"; then
+	cmd_compile="$(cat $buildfile | grep compile-$flag)"
+	if test -z "$cmd_compile"; then
+		die "Flag $flag not found!"
+	else
+		task="$(echo $task | sed \"s|compile|compile-$flag|g\")"
+	fi
+fi
+
+if test -z "nodeps"; then 
+	check_deps $deps
+	check_mkdeps $mkdeps
+fi
+
+
+} 
+
+. CONFDIR/hanhbuild.conf || die "Configuration file not found!"
+eval "$*"
+
