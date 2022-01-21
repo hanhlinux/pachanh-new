@@ -209,7 +209,9 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		char conflsh[__PATHCHARS] = "";
 		char diffsh[__PATHCHARS]			= ""			;
 		char rmsh[__PATHCHARS] = "";
+		char root_header[__PATHCHARS]="";
 		
+		snprintf(root_header, __PATHCHARS, "%s/pre-install", b);
 		snprintf(header, __PATHCHARS, "%s pre-install", token);
 		snprintf(depsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-deps.sh \"%s\" %s", b, d, b, tmp);
 		snprintf(diffsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s", b, d, b, tmp);
@@ -218,7 +220,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		
 		// Create temporary directory so we can get the header
 		printf("Unpacking %s\n", token);
-		mkdir(tmp, 0777);
+		mkdir(tmp, 0755);
 		code = untar(tmp, header);
 		check_code(code);
 		if (c == 0) {
@@ -242,6 +244,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		code = system(rmsh);
 		check_code(code);
 		rmdir(tmp);
+		remove(root_header);
 		
 		token = strtok(NULL, " ");
 		}
