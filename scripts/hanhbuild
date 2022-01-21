@@ -10,7 +10,7 @@ exit 1
 
 check_deps() {
 DEPS="$@"
-for dep in DEPS; do
+for dep in $DEPS; do
 	if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
 		die "$dep not found!"
 	fi
@@ -21,10 +21,26 @@ check_mkdeps() {
 check_deps "$@"
 }
 
+check_file() {
+files="$@"
+for x in $files; do
+	if ! test -f $hanhdir/$x; then 
+		die "$x not found!"
+	fi
+done
+}
+
 check_contain() {
 cd $pkgdir/var/lib/pachanh/system
 for x in "$@"; do
 	ln -sf $name $x 
+done
+}
+
+check_config() {
+config="$@"
+for x in $config; do 
+	mv $pkgdir/$x $pkgdir/$x.newfile
 done
 }
 
@@ -61,6 +77,13 @@ echo "config=\"$config\"" >> $HEADER
 echo "pkg_infodir=\"var/lib/pachanh/system/$name\"" >> $HEADER 
 }
 
+mktarball() {
+tar="${1}"
+dir="${2}"
+cd "$dir"
+tar -cJf "$pkgdir"/"$tar" .
+}
+
 build() {
 if test -z "$buildfile"; then
 	buildfile=buildhanh
@@ -89,7 +112,22 @@ if test -z "nodeps"; then
 	check_mkdeps $mkdeps
 fi
 
+check_files "$files" 
 
+for x in $task; do 
+	$x || die "Failed to run on function $x"
+done
+
+if test -z $no_repack; then
+	tarball="$name"-"$ver".hanhpkg.tar.xz 
+	infodir="$pkgdir/var/lib/pachanh/system/$name"
+	mkdir -p $infodir
+	gen_info $infodir/info
+	gen_header $pkgdir/pre-install
+	gen_header $infodir/header
+	gen_filelist $infodir/filelist
+	mktarball "$tarball" "$pkgdir" 
+fi
 } 
 
 . CONFDIR/hanhbuild.conf || die "Configuration file not found!"
