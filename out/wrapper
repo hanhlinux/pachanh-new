@@ -1,3 +1,0 @@
-source /home/user/ihateit/etc/hanh.conf
-
-eval "$BIN" -R \"$SYSROOT\" -m \"$MIRRORDIR\" -d \"$DOWNLOADER\" "$@"
