@@ -1,4 +1,27 @@
 #!/bin/sh
+version=2.0
+
+print_help() {
+echo "hanhbuild - Hanh Linux packages builder"
+echo "Usage: hanhbuild [Action] [Options]"
+echo "Action:"
+echo "-h                           Print this message"
+echo "-v                           Print version"
+echo "-g                           Generate database file"
+echo "-F                           Fetch package(s) build file(s)"
+echo "-b                           Build packages"
+echo "Options:"
+echo "-s=<path>                    Root directory <overwrite \$SYSROOT>"
+echo "-bf=<path>                   Build file"
+echo "Options <for build action only>:"
+echo "-d                           Do not check dependencies"
+echo "-c                           Clean build"
+echo "-f                           Force"
+echo "-fl=<val>                    Build flag"
+echo "-t=[unpack,compile,mkpkg]    Build tasks"
+echo "For any questions, please consider asking on GitHub: https://github.com/hanh-linux/pachanh"
+exit 0
+}
 err() {
 echo "ERROR: $*"
 }
@@ -9,9 +32,7 @@ exit 1
 }
 
 fetch() {
-for x in "$@"; do
-	eval "$downloader" "$x"
-done
+eval "$DOWNLOADER $*"
 }
 
 fetch_pkg() {
@@ -19,14 +40,18 @@ if test -z "$repo"; then
 	repo="$(ls $MIRRORDIR)"
 fi
 
-for x in "$@"; do
+for x in "$*"; do
 	for y in $repo; do
-		for z in $(cat "$MIRRORDIR"/"$repo"); do
-			url="$z/$x/buildhanh"
-			fetch "$url"
+		for z in $(cat "$MIRRORDIR/$y"); do
+			fetch $z/$x/buildhanh
 			if test -f buildhanh; then 
-				mkdir "$x"
+				mkdir -p "$x"
 				mv buildhanh "$x"/buildhanh
+				cd "$x"
+				. "$(pwd)"/buildhanh
+				for t in $attach; do 
+					fetch $z/$x/$t
+				done
 				break 
 			fi
 		done
@@ -38,24 +63,26 @@ done
 }
 
 check_deps() {
-for dep in "$@"; do
+for dep in $*; do
 	if ! test -d "$SYSROOT"/var/lib/pachanh/system/"$dep"; then
 		if test -n "$builddeps"; then
 			fetch_pkg "$dep" 
 			cd "$dep"
 			hanhbuild action="build"
+		else 
+			die "$x not found!"
 		fi
 	fi
 done
 }
 
 check_mkdeps() {
-check_deps "$*"
+check_deps $*
 }
 
 
-check_file() {
-for x in "$@"; do
+check_files() {
+for x in $*; do
 	if ! test -f "$hanhdir"/"$x"; then 
 		die "$x not found!"
 	fi
@@ -64,20 +91,23 @@ done
 
 check_contain() {
 cd "$pkgdir"/var/lib/pachanh/system
-for x in "$@"; do
+for x in $*; do
 	ln -sf "$name" "$x" 
 done
 }
 
 check_config() {
-for x in "$@"; do 
+for x in $*; do 
 	mv "$pkgdir"/"$x" "$pkgdir"/"$x".newfile
 done
 }
 
 gen_db() {
-echo "$name-$ver" >  data
-echo "	$desc"    >> data
+for x in $*; do
+	. $x || die
+	echo "$name-$ver" > data
+	echo "$desc" >> data
+done
 }
 
 gen_info() {
@@ -108,20 +138,13 @@ echo "config=\"$config\"" >> "$HEADER"
 echo "pkg_infodir=\"var/lib/pachanh/system/$name\"" >> "$HEADER"
 }
 
-mktarball() {
-tar="${1}"
-dir="${2}"
-cd "$dir"
-tar -cJf "$pkgdir"/"$tar" .
-}
-
 build() {
 if test -z "$buildfile"; then
-	buildfile="buildhanh"
+	buildfile="$hanhdir/buildhanh"
 fi
 . "$buildfile" || die "$buildfile not found"
 
-tarball="$name"-$ver.hanhpkg.tar.xz
+tarball="$name"-"$ver".hanhpkg.tar.xz
 
 if test -f "$hanhdir"/"$tarball"; then 
 	if test -z "$force"; then 
@@ -134,6 +157,7 @@ if test -n "$clean"; then
 fi
 
 mkdir -p "$pkgdir" "$workdir"
+echo $hanhdir
 
 if test -f .buildinfo; then 	
 	. .buildinfo || die "Failed to run .buildinfo"
@@ -148,39 +172,61 @@ if test -n "$flag"; then
 	if test -z "$cmd_compile"; then
 		die "Flag $flag not found!"
 	else
-		task="$(echo "$task" | sed \"s|compile|compile-$flag|g\")"
+		task="$(echo "$task" | sed \"s|compile|compile_$flag|g\")"
 		echo "flag=\"$flag\"" >> "$hanhdir"/.buildinfo
 	fi
 fi
 
 if test -z "nodeps"; then 
-	check_deps "$deps"
-	check_mkdeps "$mkdeps"
+	check_deps $deps
+	check_mkdeps $mkdeps
 fi
 
-fetch "$sources"
-check_files "$files" 
+for url in $sources; do
+	fetch $url
+done
+
+check_files $files 
 
 for x in $task; do 
 	echo "Running function $x..."
-	"$x" || die "Failed to run function $x"
-	if test "$x" == "mkpkg"; then
+	eval "$x" || die "Failed to run function $x"
+	if test "$x" = "mkpkg"; then
 		repack=1;
 	fi
 done
 
 if test -n "$repack"; then
-	infodir="$pkgdir"/var/lib/pachanh/system/"$name"
+	cd $pkgdir
+	infodir=$pkgdir/var/lib/pachanh/system/"$name"
 	mkdir -p "$infodir"
 	gen_info "$infodir"/info
 	gen_header "$pkgdir"/pre-install
 	gen_header "$infodir"/header
 	gen_filelist "$infodir"/filelist
-	mktarball "$hanhdir"/"$tarball" "$pkgdir"	
+	cd "$pkgdir"
+	tar -cJf "$hanhdir"/"$tarball" *	
 fi
 } 
 
 . CONFDIR/hanh.conf || die "Configuration file not found!"
-eval "$*"
 
-$action
+for arg in $*; do
+	case $arg in 
+		-h) print_help;;
+		-v) echo "$version";exit;;
+		-b) action=build;;
+		-F) action=fetch_pkg;;
+		-g) action=gen_db;;
+		-d) nodeps=1;;
+		-f) force=1;;
+		-c) clean=1;;
+		-s=*) SYSROOT="$(echo $arg | cut -d "=" -f 1)";;
+		-bf=*) buildfile="$(echo $arg | cut -d "=" -f 1)";;
+		-t=*) task="$(echo $arg | cut -d "=" -f 1 | sed 's/,//g')";;
+		-fl=*) flag="$(echo $arg | cut -d "=" -f 1)";;
+		*) misc="$misc $arg";;
+	esac
+done
+
+$action $misc

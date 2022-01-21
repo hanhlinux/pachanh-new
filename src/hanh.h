@@ -206,13 +206,15 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		char tmp[20] 			= "/tmp/tmp.XXXXXX"	;
 		char header[__PATHCHARS]	= ""			;
 		char depsh[__PATHCHARS]			= ""			;
+		char conflsh[__PATHCHARS] = "";
 		char diffsh[__PATHCHARS]			= ""			;
 		char rmsh[__PATHCHARS] = "";
 		
 		snprintf(header, __PATHCHARS, "%s pre-install", token);
-		snprintf(depsh, __PATHCHARS, "%s/%s/share/pachanh/check-deps.sh \"%s\" %s", b, d, b, tmp);
-		snprintf(diffsh, __PATHCHARS, "%s/%s/share/pachanh/get-old.sh \"%s\"%s", b, d, b, tmp);
-		snprintf(rmsh, __PATHCHARS, "%s/%s/share/pachanh/rm-old.sh \"%s\"%s", b, d, b,tmp);
+		snprintf(depsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-deps.sh \"%s\" %s", b, d, b, tmp);
+		snprintf(diffsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s", b, d, b, tmp);
+		snprintf(rmsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/rm-old.sh \"%s\" %s", b, d, b,tmp);
+		snprintf(conflsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s", b, d, b,tmp);
 		
 		// Create temporary directory so we can get the header
 		printf("Unpacking %s\n", token);
@@ -225,6 +227,8 @@ int INSTALL(char a[], char b[], char d[], int c) {
 			code = system(depsh);
 			check_code(code);
 			}
+		code = system(conflsh);
+		check_code(code);
 		// Also for filtering old files
 		printf("Filtering old files\n");
 		code = system(diffsh);
