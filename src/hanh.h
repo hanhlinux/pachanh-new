@@ -218,7 +218,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		
 		// Create temporary directory so we can get the header
 		printf("Unpacking %s\n", token);
-		mkdtemp(tmp);
+		mkdir(tmp, 0777);
 		code = untar(tmp, header);
 		check_code(code);
 		if (c == 0) {
