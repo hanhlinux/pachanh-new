@@ -180,7 +180,7 @@ if test -n "$repack"; then
 fi
 } 
 
-. CONFDIR/hanh.conf || die "Configuration file not found!"
+. /home/user/ihateit/etc/hanhbuild.conf || die "Configuration file not found!"
 eval "$*"
 
 $action
