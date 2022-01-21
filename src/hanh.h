@@ -203,7 +203,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 	while ( token != NULL) {
 		// Prepare to unpack
 		int code = 0; 
-		char tmp[20] 			= "/tmp/tmp.XXXXXX"	;
+		char tmp[20] 			= "/tmp/tmpdir"	;
 		char header[__PATHCHARS]	= ""			;
 		char depsh[__PATHCHARS]			= ""			;
 		char conflsh[__PATHCHARS] = "";
