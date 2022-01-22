@@ -63,14 +63,17 @@ done
 }
 
 check_deps() {
-for dep in $*; do
-	if ! test -d "$SYSROOT"/var/lib/pachanh/system/"$dep"; then
-		if test -n "$builddeps"; then
-			fetch_pkg "$dep" 
-			cd "$dep"
-			hanhbuild action="build"
-		else 
-			die "$x not found!"
+for dep in "$@"; do
+	if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
+		if test -z "$builddeps"; then
+			die "Dependency $dep not found"
+		else
+			mkdir -p $hanhdir/deps
+			cd $hanhdir/deps
+			hanhbuild -F "$dep"
+			cd $dep
+			hanhbuild -b 
+			pachanh -i $dep*.hanhpkg.tar.xz
 		fi
 	fi
 done
@@ -177,7 +180,8 @@ if test -n "$flag"; then
 	fi
 fi
 
-if test -z "nodeps"; then 
+if test -z "$nodeps"; then	
+	echo "Checking deps..."
 	check_deps $deps
 	check_mkdeps $mkdeps
 fi
@@ -209,7 +213,7 @@ if test -n "$repack"; then
 fi
 } 
 
-. CONFDIR/hanh.conf || die "Configuration file not found!"
+. /home/user/ihateit/etc/hanh.conf || die "Configuration file not found!"
 
 for arg in $*; do
 	case $arg in 
@@ -221,10 +225,10 @@ for arg in $*; do
 		-d) nodeps=1;;
 		-f) force=1;;
 		-c) clean=1;;
-		-s=*) SYSROOT="$(echo $arg | cut -d "=" -f 1)";;
-		-bf=*) buildfile="$(echo $arg | cut -d "=" -f 1)";;
-		-t=*) task="$(echo $arg | cut -d "=" -f 1 | sed 's/,//g')";;
-		-fl=*) flag="$(echo $arg | cut -d "=" -f 1)";;
+		-s=*) SYSROOT="$(echo $arg | cut -d "=" -f 2)";;
+		-bf=*) buildfile="$(echo $arg | cut -d "=" -f 2)";;
+		-t=*) task="$(echo $arg | cut -d "=" -f 2 | sed 's/,//g')";;
+		-fl=*) flag="$(echo $arg | cut -d "=" -f 2)";;
 		*) misc="$misc $arg";;
 	esac
 done
