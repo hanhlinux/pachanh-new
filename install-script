@@ -21,7 +21,7 @@ exit
 CHECK() {
 COMMAND="install sed rm echo tee \
 	find tar gzip mkdir cat \
-	diff ln readlink sh"
+	diff ln readlink sh $CC"
 for x in "$COMMAND"; do
 	if ! command -v $x > /dev/null 2>&1; then
 		echo "$x is not found."
