@@ -48,7 +48,7 @@ for x in "$*"; do
 				mkdir -p "$x"
 				mv buildhanh "$x"/buildhanh
 				cd "$x"
-				. "$(pwd)"/buildhanh
+				. "$(pwd)/buildhanh"
 				for t in $attach; do 
 					fetch $z/$x/$t
 				done
@@ -104,7 +104,14 @@ for x in $*; do
 	mv "$pkgdir"/"$x" "$pkgdir"/"$x".newfile
 done
 }
+get_flag() {
+if test -z "$buildfile"; then
+	buildfile="$(pwd)/buildhanh"
+fi
+. "$buildfile" || die "Cannot get build information from $buildfile"
+echo "Build flags are: $buildFlags"
 
+}
 gen_db() {
 for x in $*; do
 	. $x || die
@@ -145,7 +152,11 @@ build() {
 if test -z "$buildfile"; then
 	buildfile="$hanhdir/buildhanh"
 fi
-. "$buildfile" || die "$buildfile not found"
+. "$buildfile" || die "Cannot get information from $buildfile"
+
+if test -n "$Task"; then
+	task="$Task"
+fi
 
 tarball="$name"-"$ver".hanhpkg.tar.xz
 
@@ -213,7 +224,7 @@ if test -n "$repack"; then
 fi
 } 
 
-. /home/user/ihateit/etc/hanh.conf || die "Configuration file not found!"
+. CONFDIR/hanh.conf || die "Configuration file not found!"
 
 for arg in $*; do
 	case $arg in 
@@ -222,12 +233,13 @@ for arg in $*; do
 		-b) action=build;;
 		-F) action=fetch_pkg;;
 		-g) action=gen_db;;
+		-sf) action=get_flag;;
 		-d) nodeps=1;;
 		-f) force=1;;
 		-c) clean=1;;
 		-s=*) SYSROOT="$(echo $arg | cut -d "=" -f 2)";;
 		-bf=*) buildfile="$(echo $arg | cut -d "=" -f 2)";;
-		-t=*) task="$(echo $arg | cut -d "=" -f 2 | sed 's/,//g')";;
+		-t=*) Task="$(echo $arg | cut -d "=" -f 2 | sed 's/,/ /g')";;
 		-fl=*) flag="$(echo $arg | cut -d "=" -f 2)";;
 		*) misc="$misc $arg";;
 	esac

@@ -9,20 +9,18 @@ name=example
 ver=version
 desc="Example package description"
 home="https://www.example.org/"
-depends="depend1 depend2 depend3"
-makedeps="depend4 depend5 depend6"
-build_bin="binary1 binary2 binary3"
-lib="lib1.so lib2.a lib3.o"
+deps="depend1 depend2 depend3"
+mkdeps="depend4 depend5 depend6"
 sources="https://www.example.org/$name-$ver.tar.gz"
 contain="example-smaller"
-
-needed="$name-$ver.tar.gz file1"
-build_flag=""
+attach="file1 file2"
+config="path-to-config1 path-to-config2"
+needed="$name-$ver.tar.gz $attatch"
+buildFlags=""
 
 unpack-pkg(){
 cd $workdir
 tar -xf $hanhdir/$name-$ver.tar.gz
-cp -r $hanhdir/file1 
 }
 
 compile-pkg(){
@@ -40,29 +38,22 @@ install -Dm644 $workdir/file1 $pkgdir/usr/share/$name-$ver/file1
 ================================================================
 
 Explaining variables: 
-name                             Package name
-ver                              Package version
-desc                             Package description
-home                             Package homepage
-depends                          Package runtime dependencies
-makedeps                         Package make dependencies
-build_bin                        Binaries for building package
-lib                              Package runtime libraries
-sources                          Remote source files
-needed                           Necessary files
-build_flag                       Information for available build flags
-ignore_files                     Ignore files 
-hanhdir,workdir,pkgdir           Check out hanhbuild in the docs 
+name              Package name
+ver               Package version
+desc              Package description
+home              Package homepage
+deps              Package runtime dependencies
+mkdeps            Package make dependencies
+sources           Remote source files
+attach            Fetch files attached with build file  
+files             Necessary files
+buildFlags        Available build flags
+config            Configuration files that will not be overwritten 
+hanhdir           Directory contains source files
+workdir           Directory to compile source code
+pkgdir            Directory to store compiled package
 
 Explaining functions: 
-unpack-pkg()                     Preparing for the package build 
-compile-pkg()                    Compiling the package
-make-pkg()                       Creating the package archive
-
-Notes: 
-1. name, ver, desc and make-pkg() are required in build file.
-2. compile-pkg(): 
-hanhbuild now supports build flags (release 1.1 on 15/10/2021).
-If package features can be modified, the build file is recommended to split to several flags. The flag syntax must be compile-pkg_<flag>() or it won't be found by hanhbuild
-3. make-pkg(): 
-make-pkg() supports split packages. They must follow the syntax make-pkg_<package>() 
+unpack()          Preparing for the package build 
+compile()         Compiling the package
+mkpkg()           Creating the package archive
