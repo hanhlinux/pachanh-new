@@ -26,7 +26,6 @@ pachanh-new will be POSIX C and `sh` compatible.
 **Buildtime binaries**
 - `install`
 - A C compiler (`clang` is used by default)
-- 
 **Library**: Tested with `glibc` or `musl`.
 #### Compilation
 - Clone this repo and `cd` to it
@@ -50,4 +49,4 @@ CONFDIR=<dir>       Package config directory (default $SYSROOT/etc)
 You can create a .config file so that it will be used for compilation
 ```
 #### Usage
-Read documentation inside `doc` directory 
+Read documentation inside `doc` directory.
