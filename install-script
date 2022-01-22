@@ -10,6 +10,7 @@ echo "CLEAN               Clean current build"
 echo "If \$action is empty, it will run COMPILE by default"
 echo "Build variable:"
 echo "CC=<binary>         C compiler (default clang)"
+echo "CFLAGS=<flags>      C compiler flags"
 echo "PREFIX=<dir>        Install prefix (default /usr/local)"
 echo "DESTDIR=<dir>       Install directory (default /)"
 echo "SYSROOT=<dir>       Package root directory (default /)"
@@ -40,7 +41,7 @@ cp -r scripts/hanhbuild out/hanhbuild
 sed "s|sysroot|$SYSROOT|g" -i out/hanh.conf
 sed "s|CONFDIR|$CONFDIR|g" -i out/wrapper out/hanh.conf out/hanhbuild
 sed "s|prefix|$PREFIX|g" -i out/hanh.c out/hanh.conf
-eval $CC -o out/hanh out/hanh.c
+eval $CC $CFLAGS -o out/hanh out/hanh.c
 }
 
 INSTALL() {
@@ -100,4 +101,4 @@ if test -z "$action"; then
 	action="COMPILE"
 fi
 
-$action || echo Failed to run function $action && exit 1
+$action || echo "Failed to run function $action" && exit 1
