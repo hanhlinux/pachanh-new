@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 root="${1}"
 tmpdir="${2}"
 package="${3}"

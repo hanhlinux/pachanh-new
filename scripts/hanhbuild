@@ -10,6 +10,7 @@ echo "-v                           Print version"
 echo "-g                           Generate database file"
 echo "-F                           Fetch package(s) build file(s)"
 echo "-b                           Build packages"
+echo "-gf                          See all available flags from a build file"
 echo "Options:"
 echo "-s=<path>                    Root directory <overwrite \$SYSROOT>"
 echo "-bf=<path>                   Build file"
@@ -17,6 +18,7 @@ echo "Options <for build action only>:"
 echo "-d                           Do not check dependencies"
 echo "-c                           Clean build"
 echo "-f                           Force"
+echo "-bd                          Build dependencies"
 echo "-fl=<val>                    Build flag"
 echo "-t=[unpack,compile,mkpkg]    Build tasks"
 echo "For any questions, please consider asking on GitHub: https://github.com/hanh-linux/pachanh"
@@ -36,11 +38,12 @@ eval "$DOWNLOADER $*"
 }
 
 fetch_pkg() {
+cwd=$(pwd)
 if test -z "$repo"; then
 	repo="$(ls $MIRRORDIR)"
 fi
 
-for x in "$*"; do
+for x in $*; do
 	for y in $repo; do
 		for z in $(cat "$MIRRORDIR/$y"); do
 			fetch $z/$x/buildhanh
@@ -52,6 +55,7 @@ for x in "$*"; do
 				for t in $attach; do 
 					fetch $z/$x/$t
 				done
+				cd $cwd
 				break 
 			fi
 		done
@@ -63,17 +67,17 @@ done
 }
 
 check_deps() {
-for dep in "$@"; do
+for dep in $*; do
 	if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
 		if test -z "$builddeps"; then
 			die "Dependency $dep not found"
 		else
-			mkdir -p $hanhdir/deps
-			cd $hanhdir/deps
+			cd "$hanhdir"/deps
 			hanhbuild -F "$dep"
-			cd $dep
-			hanhbuild -b 
+			cd "$dep"
+			hanhbuild -b -bd
 			pachanh -i $dep*.hanhpkg.tar.xz
+			cd "$hanhdir"
 		fi
 	fi
 done
@@ -93,10 +97,11 @@ done
 }
 
 check_contain() {
-cd "$pkgdir"/var/lib/pachanh/system
+cd $pkgdir/var/lib/pachanh/system
 for x in $*; do
 	ln -sf "$name" "$x" 
 done
+cd $pkgdir
 }
 
 check_config() {
@@ -104,20 +109,19 @@ for x in $*; do
 	mv "$pkgdir"/"$x" "$pkgdir"/"$x".newfile
 done
 }
+
 get_flag() {
 if test -z "$buildfile"; then
 	buildfile="$(pwd)/buildhanh"
 fi
 . "$buildfile" || die "Cannot get build information from $buildfile"
 echo "Build flags are: $buildFlags"
-
 }
+
 gen_db() {
-for x in $*; do
-	. $x || die
-	echo "$name-$ver" > data
-	echo "$desc" >> data
-done
+. ${1} || die
+echo "$name-$ver" > data
+echo "$desc" >> data
 }
 
 gen_info() {
@@ -167,14 +171,15 @@ if test -f "$hanhdir"/"$tarball"; then
 fi
 
 if test -n "$clean"; then
-	rm -rf "$pkgdir" "$workdir" "$hanhdir"/.buildinfo "$hanhdir"/"$tarball" 
+	rm -rf "$pkgdir" "$workdir" "$hanhdir"/.buildinfo "$hanhdir"/"$tarball" "$hanhdir"/deps
 fi
 
+rm -rf "$pkgdir"
 mkdir -p "$pkgdir" "$workdir"
 echo $hanhdir
 
-if test -f .buildinfo; then 	
-	. .buildinfo || die "Failed to run .buildinfo"
+if test -f "$hanhdir"/.buildinfo; then 	
+	. "$hanhdir"/.buildinfo || die "Failed to run .buildinfo"
 fi
 
 if test -z "$task"; then
@@ -193,7 +198,8 @@ fi
 
 if test -z "$nodeps"; then	
 	echo "Checking deps..."
-	check_deps $deps
+	mkdir -p $hanhdir/deps
+	check_deps $depends
 	check_mkdeps $mkdeps
 fi
 
@@ -215,16 +221,22 @@ if test -n "$repack"; then
 	cd $pkgdir
 	infodir=$pkgdir/var/lib/pachanh/system/"$name"
 	mkdir -p "$infodir"
+
+	check_contain $contain
+	check_config  $config
+	
 	gen_info "$infodir"/info
 	gen_header "$pkgdir"/pre-install
 	gen_header "$infodir"/header
 	gen_filelist "$infodir"/filelist
+	
 	cd "$pkgdir"
 	tar -cJf "$hanhdir"/"$tarball" *	
+	echo "Package $tarball created."
 fi
 } 
 
-. CONFDIR/hanh.conf || die "Configuration file not found!"
+. CONFDIR/hanh.conf || die "Cannot get information from configuration file."
 
 for arg in $*; do
 	case $arg in 
@@ -233,10 +245,11 @@ for arg in $*; do
 		-b) action=build;;
 		-F) action=fetch_pkg;;
 		-g) action=gen_db;;
-		-sf) action=get_flag;;
+		-gf) action=get_flag;;
 		-d) nodeps=1;;
 		-f) force=1;;
 		-c) clean=1;;
+		-bd) builddeps=1;;
 		-s=*) SYSROOT="$(echo $arg | cut -d "=" -f 2)";;
 		-bf=*) buildfile="$(echo $arg | cut -d "=" -f 2)";;
 		-t=*) Task="$(echo $arg | cut -d "=" -f 2 | sed 's/,/ /g')";;

@@ -203,7 +203,8 @@ int INSTALL(char a[], char b[], char d[], int c) {
 	while ( token != NULL) {
 		// Prepare to unpack
 		int code = 0; 
-		char tmp[20] 			= "/tmp/tmpdir"	;
+		char tmpdir[20] 			= "/tmp/tmp.XXXXXX"	;
+		char *tmp= mkdtemp(tmpdir);
 		char header[__PATHCHARS]	= ""			;
 		char depsh[__PATHCHARS]			= ""			;
 		char conflsh[__PATHCHARS] = "";
@@ -214,7 +215,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		snprintf(root_header, __PATHCHARS, "%s/pre-install", b);
 		snprintf(header, __PATHCHARS, "%s pre-install", token);
 		snprintf(depsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-deps.sh \"%s\" %s", b, d, b, tmp);
-		snprintf(diffsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s", b, d, b, tmp);
+		snprintf(diffsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s %s", b, d, b, tmp, token);
 		snprintf(rmsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/rm-old.sh \"%s\" %s", b, d, b,tmp);
 		snprintf(conflsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s", b, d, b,tmp);
 		

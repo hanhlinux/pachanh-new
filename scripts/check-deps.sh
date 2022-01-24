@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/bin/sh
 root="${1}"
 tmpdir="${2}"
 infodir="$root/var/lib/pachanh/system/"
