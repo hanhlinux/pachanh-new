@@ -22,7 +22,6 @@ pachanh-new will be POSIX C and `sh` compatible.
 - `sh` 
 - `mv`
 - `cp`
-- 
 **Buildtime binaries**
 - `install`
 - A C compiler (`clang` is used by default)
