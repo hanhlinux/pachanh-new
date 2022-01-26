@@ -67,20 +67,22 @@ done
 }
 
 check_deps() {
-for dep in $*; do
-	if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
-		if test -z "$builddeps"; then
-			die "Dependency $dep not found"
-		else
-			cd "$hanhdir"/deps
-			hanhbuild -F "$dep"
-			cd "$dep"
-			hanhbuild -b -bd
-			pachanh -i $dep*.hanhpkg.tar.xz
-			cd "$hanhdir"
+if test -z "$*"; then
+	for dep in $*; do
+		if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
+			if test -z "$builddeps"; then
+				die "Dependency $dep not found"
+			else
+				cd "$hanhdir"/deps
+				hanhbuild -F "$dep"
+				cd "$dep"
+				hanhbuild -b -bd
+				pachanh -i $dep*.hanhpkg.tar.xz
+				cd "$hanhdir"
+			fi
 		fi
-	fi
-done
+	done
+fi
 }
 
 check_mkdeps() {
