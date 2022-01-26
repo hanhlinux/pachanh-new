@@ -193,6 +193,7 @@ if test -z "$nodeps"; then
 	check_mkdeps $mkdeps
 fi
 
+echo "Fetching sources"
 for url in $sources; do
 	fetch $url
 done
