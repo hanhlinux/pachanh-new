@@ -153,9 +153,6 @@ echo "pkg_infodir=\"var/lib/pachanh/system/$name\"" >> "$HEADER"
 }
 
 build() {
-if test -z "$buildfile"; then
-	buildfile="$hanhdir/buildhanh"
-fi
 . "$buildfile" || die "Cannot get information from $buildfile"
 
 if test -n "$Task"; then
@@ -184,16 +181,6 @@ fi
 
 if test -z "$task"; then
 	task="unpack compile mkpkg" 
-fi
-
-if test -n "$flag"; then
-	cmd_compile="$(cat "$buildfile" | grep -w compile-$flag)"
-	if test -z "$cmd_compile"; then
-		die "Flag $flag not found!"
-	else
-		task="$(echo "$task" | sed \"s|compile|compile_$flag|g\")"
-		echo "flag=\"$flag\"" >> "$hanhdir"/.buildinfo
-	fi
 fi
 
 if test -z "$nodeps"; then	
@@ -257,5 +244,9 @@ for arg in $*; do
 		*) misc="$misc $arg";;
 	esac
 done
+
+if test -z "$buildfile"; then
+	buildfile="$hanhdir/buildhanh"
+fi
 
 $action $misc
