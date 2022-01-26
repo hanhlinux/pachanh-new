@@ -155,6 +155,7 @@ echo "pkg_infodir=\"var/lib/pachanh/system/$name\"" >> "$HEADER"
 }
 
 build() {
+export $USE_FLAGS
 . "$buildfile" || die "Cannot get information from $buildfile"
 
 if test -n "$Task"; then
