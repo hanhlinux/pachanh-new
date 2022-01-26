@@ -121,7 +121,7 @@ echo "Build flags are: $buildFlags"
 }
 
 gen_db() {
-. ${1} || die
+. $buildfile || die
 echo "$name-$ver" > data
 echo "$desc" >> data
 }
