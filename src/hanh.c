@@ -83,6 +83,7 @@ int main(int argc, char **argv)
 			
 			case 'P':
 			strcpy(PREFIX, optarg);
+			break; 
 			
 			case '?':
 			printf("Please use \"hanh -h\" for more information\n");
