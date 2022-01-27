@@ -19,7 +19,6 @@ echo "-d                           Do not check dependencies"
 echo "-c                           Clean build"
 echo "-f                           Force"
 echo "-bd                          Build dependencies"
-echo "-fl=<val>                    Build flag"
 echo "-t=[unpack,compile,mkpkg]    Build tasks"
 echo "For any questions, please consider asking on GitHub: https://github.com/hanh-linux/pachanh"
 exit 0
