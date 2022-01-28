@@ -243,7 +243,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		code = untar(b, token);
 		check_code(code);
 		// Check for configuration file
-		printf("Checking for configuration files\n")
+		printf("Checking for configuration files\n");
 		code = system(confsh);
 		check_code(code);
 		// Remove the old files and /tmp/tmp.XXXXXX directory
