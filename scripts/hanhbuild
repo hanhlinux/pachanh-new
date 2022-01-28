@@ -66,7 +66,7 @@ done
 }
 
 check_deps() {
-if test -z "$*"; then
+if test -n "$*"; then
 	for dep in $*; do
 		if ! test -d $SYSROOT/var/lib/pachanh/system/$dep; then
 			if test -z "$builddeps"; then
@@ -83,11 +83,6 @@ if test -z "$*"; then
 	done
 fi
 }
-
-check_mkdeps() {
-check_deps $*
-}
-
 
 check_files() {
 for x in $*; do
@@ -189,10 +184,10 @@ if test -z "$nodeps"; then
 	echo "Checking deps..."
 	mkdir -p $hanhdir/deps
 	check_deps $depends
-	check_mkdeps $mkdeps
+	check_deps $mkdeps
 fi
 
-echo "Fetching sources"
+echo "Fetching sources..."
 for url in $sources; do
 	fetch $url
 done
