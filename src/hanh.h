@@ -218,7 +218,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		snprintf(depsh	, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-deps.sh \"%s\" %s	", b, d, b, tmp);
 		snprintf(rmsh   , __PATHCHARS, "%s/%s/share/pachanh/scripts/rm-old.sh \"%s\" %s		", b, d, b,tmp);
 		snprintf(conflsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s	", b, d, b,tmp);
-		snprintf(confsh , __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s	", b, d, b,tmp);
+		snprintf(confsh , __PATHCHARS, "%s/%s/share/pachanh/scripts/mv-conf.sh \"%s\" %s	", b, d, b,tmp);
 		snprintf(diffsh , __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s %s	", b, d, b, tmp, token);
 
 		// Create temporary directory so we can get the header
@@ -243,6 +243,7 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		code = untar(b, token);
 		check_code(code);
 		// Check for configuration file
+		printf("Checking for configuration files\n")
 		code = system(confsh);
 		check_code(code);
 		// Remove the old files and /tmp/tmp.XXXXXX directory

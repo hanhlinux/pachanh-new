@@ -59,7 +59,8 @@ install -Dm755 out/hanhbuild $DESTDIR/$SYSROOT/$PREFIX/bin/hanhbuild
 
 install -Dm644 src/hanh.h $DESTDIR/$SYSROOT/$PREFIX/include/hanh.h
 
-for x in "check-deps.sh" "get-old.sh" "rm-old.sh" "check-conflict.sh"; do
+for x in "check-deps.sh" "get-old.sh" "rm-old.sh" \
+	"check-conflict.sh" "mv-conf.sh"; do
 	install -Dm755 scripts/$x $DESTDIR/$SYSROOT/$PREFIX/share/pachanh/scripts/$x
 done
 
