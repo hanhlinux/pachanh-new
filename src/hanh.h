@@ -4,6 +4,7 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <dirent.h>
+
 #define __PATHCHARS 2000
 #define __HANHVER "2.0"
 
@@ -30,13 +31,13 @@ void help() {
 	exit(0);
 	}
 	
-void printver(){
+void printver() {
 	printf("%s\n", __HANHVER);
 	exit(0);
 	}
 
 /*ERROR message*/
-void err(char x[]){
+void err(char x[]) {
 	/* x: error message */
 	printf("ERROR: %s\n", x);
 	}
@@ -79,8 +80,7 @@ int check_path(char a[], char b[], int c, int d) {
 	/* a: Object name (not variable)
 	 * b: Object to check
 	 * c: Non-zero exit code
-	 * d: Check mode (0 for file, 1 for directory)
-	 * e: Quiet or not (1: quiet, 2: verbose)*/
+	 * d: Check mode (0 for file, 1 for directory)*/
 	char bruh[__PATHCHARS], errMsg[__PATHCHARS];
 	int if_found, code;
 	struct stat buf;
@@ -203,22 +203,24 @@ int INSTALL(char a[], char b[], char d[], int c) {
 	while ( token != NULL) {
 		// Prepare to unpack
 		int code = 0; 
-		char tmpdir[20] 			= "/tmp/tmp.XXXXXX"	;
-		char *tmp= mkdtemp(tmpdir);
+		char tmpdir[20] 		= "/tmp/tmp.XXXXXX"	;
+		char *tmp			= mkdtemp(tmpdir)	;
 		char header[__PATHCHARS]	= ""			;
-		char depsh[__PATHCHARS]			= ""			;
-		char conflsh[__PATHCHARS] = "";
-		char diffsh[__PATHCHARS]			= ""			;
-		char rmsh[__PATHCHARS] = "";
-		char root_header[__PATHCHARS]="";
+		char depsh[__PATHCHARS]		= ""			;
+		char conflsh[__PATHCHARS] 	= ""			;
+		char diffsh[__PATHCHARS]	= ""			;
+		char rmsh[__PATHCHARS] 		= ""			;
+		char confsh[__PATHCHARS]	= ""			;
+		char root_header[__PATHCHARS]	= ""			;
 		
 		snprintf(root_header, __PATHCHARS, "%s/pre-install", b);
-		snprintf(header, __PATHCHARS, "%s pre-install", token);
-		snprintf(depsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-deps.sh \"%s\" %s", b, d, b, tmp);
-		snprintf(diffsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s %s", b, d, b, tmp, token);
-		snprintf(rmsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/rm-old.sh \"%s\" %s", b, d, b,tmp);
-		snprintf(conflsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s", b, d, b,tmp);
-		
+		snprintf(header	, __PATHCHARS, "%s pre-install",token);
+		snprintf(depsh	, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-deps.sh \"%s\" %s	", b, d, b, tmp);
+		snprintf(rmsh   , __PATHCHARS, "%s/%s/share/pachanh/scripts/rm-old.sh \"%s\" %s		", b, d, b,tmp);
+		snprintf(conflsh, __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s	", b, d, b,tmp);
+		snprintf(confsh , __PATHCHARS, "%s/%s/share/pachanh/scripts/check-conflict.sh \"%s\" %s	", b, d, b,tmp);
+		snprintf(diffsh , __PATHCHARS, "%s/%s/share/pachanh/scripts/get-old.sh \"%s\" %s %s	", b, d, b, tmp, token);
+
 		// Create temporary directory so we can get the header
 		printf("Unpacking %s\n", token);
 		mkdir(tmp, 0755);
@@ -239,6 +241,9 @@ int INSTALL(char a[], char b[], char d[], int c) {
 		// Installing the package
 		printf("Installing %s\n", token);
 		code = untar(b, token);
+		check_code(code);
+		// Check for configuration file
+		code = system(confsh);
 		check_code(code);
 		// Remove the old files and /tmp/tmp.XXXXXX directory
 		printf("Cleaning up...\n");
@@ -356,23 +361,21 @@ int FIND (char a[], char b[], char c[]) {
 	char *token, *filename, *bufA = NULL, *bufB = NULL;
 	FILE *file;
 	int d, code;
-	token = strtok_r(a, " ", &bufA);
 	
+	token = strtok_r(a, " ", &bufA);
 		if (c[0] == '\0') {
 			strcpy(c, "info,filelist,header");
 		}
 		
-		
 	while (token != NULL) {
-		char fullpath[__PATHCHARS] = "";
-		char filetype[25]="";
-	
-        strcpy(filetype, c);
-        filename = strtok_r(filetype, ",", &bufB);
-        
+		char fullpath[__PATHCHARS] = "", filetype[25]="";
+
 		snprintf(fullpath, __PATHCHARS, "%s/var/lib/pachanh/system/%s/", b, token);
+        	strcpy(filetype, c);
+        	filename = strtok_r(filetype, ",", &bufB);
 		code = check_path(token, fullpath, 1, 1);
 		check_code(code);
+
 		while (filename != NULL) {
 			char path[__PATHCHARS]="";
 			
@@ -413,16 +416,17 @@ int REMOVE(char a[], char b[]) {
 	 token = strtok_r(pkg, " ", &bufA); 
 	 while (token != NULL) {
 		 int i = 0, size=0;
-		 
+		 // Let's check if the package is installed or not. 
 		 snprintf(pkgDir, __PATHCHARS, "%s/%s/", datadir,token);
 		 snprintf(pkgfl, __PATHCHARS, "%s/%s/filelist", datadir, token);
 		 printf("Check if package %s is installed\n", token);
 		 code = silent_check_path(pkgDir, 1, 0); 
 		 if (code != 0) {
-			 snprintf(errMsg, __PATHCHARS, "%s is not installed", token); 
-			 die(errMsg, 1); 
+			 snprintf(errMsg,__PATHCHARS, "%s is not installed", token); 
+			 die(errMsg, 1);  
 			 }
-		 code = check_path(pkgfl, pkgfl, 1, 0); 
+		 // We will check if the filelist is available and read it
+		 code = check_path(pkgfl, pkgfl, 1, 0);
 		 check_code(code); 
 		 size = getSize(pkgfl) + 1; 
 		 char flc[size]; 
@@ -444,7 +448,10 @@ int REMOVE(char a[], char b[]) {
 			 i++; 
 			 }			
 		 fclose(file);
-			 
+		 	 
+		 // Remove all available files, we won't delete directory 
+		 // since it may delete standard folders that may destroy
+		 // the system
 		 filetok = strtok_r(flc, "\n", &bufB); 
 		 printf("Removing %s...\n", token);
 		 while (filetok != NULL) {
@@ -464,6 +471,64 @@ int REMOVE(char a[], char b[]) {
 		 token = strtok_r(NULL, "\n", &bufA); 
 		 }
 		 return 0; 
+	}
+
+int CHECK(char a[], char b[], char c[]) {
+	/* a: Packages 
+	 * b: Root directory
+	 * c: Mirror directory*/
+	char *buf=NULL, *bufA=NULL, *token, *reponame;
+       	char root[__PATHCHARS]="", path[__PATHCHARS]= "", all_repo[__PATHCHARS]= "";
+	struct dirent *pDirent; 
+	DIR *dir; 
+	
+	strcpy(root, b);	
+	strcpy(path, c);
+	
+	// List all repo 
+	dir = opendir(path);
+	while ((pDirent = readdir(dir)) != NULL ) {
+		if (pDirent -> d_name[0] != '.') {
+			strcat(all_repo, pDirent -> d_name);
+			strcat(all_repo, "\n"); 
+		}
+	}
+	
+	token = strtok_r(a, " ", &buf);
+	
+	while (token != NULL) { 
+	char allRepo[__PATHCHARS] = "";
+
+	strcpy(allRepo, all_repo);		 
+	reponame = strtok_r(allRepo, "\n ", &bufA);
+		while (reponame != NULL) {
+			char fullpath[__PATHCHARS] = "";
+			int if_found, d; 
+			FILE *file; 
+			
+			// Check if the data file is available. If found, print it
+			// Otherwise check the next repo
+			snprintf(fullpath, __PATHCHARS, "%s/var/lib/pachanh/remote/%s/%s/data", root, reponame, token); 
+			if_found = silent_check_path(fullpath, 1, 0);
+			if (if_found == 0) {
+			printf("Printing database of %s/%s...\n", reponame, token);
+			file = fopen(fullpath, "r"); 
+			while (1) {
+				d = fgetc(file); 
+				if (feof(file)) {
+					break;
+					}
+					printf("%c", d);
+				}
+			fclose(file);
+			}
+
+			reponame=strtok_r(NULL, "\n", &bufA);
+			}
+
+		token = strtok_r(NULL, " ", &buf);
+		}
+	return 0;
 	}
 	
 void general_die() {
