@@ -297,7 +297,7 @@ int SYNC(char a[], char b[], char c[]) {
 		FILE *text;	
 		int i = 0;
 		
-		snprintf(tarfile, __PATHCHARS, "%s.tar.gz", token);
+		snprintf(tarfile, __PATHCHARS, "%s.database", token);
 		snprintf(fullpath, __PATHCHARS, "%s/%s", path, token);
 			
 		size = getSize(fullpath) + 1;

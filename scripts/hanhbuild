@@ -210,6 +210,7 @@ if test -n "$repack"; then
 	check_contain $contain
 	check_config  $config
 	
+	touch "$infodir"/filelist
 	gen_info "$infodir"/info
 	gen_header "$pkgdir"/pre-install
 	gen_header "$infodir"/header
