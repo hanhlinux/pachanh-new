@@ -185,8 +185,8 @@ int fetch(char a[], char b[], char c[]) {
 	 char command[__PATHCHARS] = "";
 	 int code = 0;
 	 
-	 snprintf(command, __PATHCHARS, "%s %s/%s.tar.gz", a, b, c);
-	 printf("Fetching %s.tar.gz\n", c);
+	 snprintf(command, __PATHCHARS, "%s %s/%s.database", a, b, c);
+	 printf("Fetching %s.database\n", c);
 	 code = system(command);
 	 
 	 return code;
