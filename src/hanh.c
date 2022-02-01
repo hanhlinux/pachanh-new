@@ -136,7 +136,8 @@ int main(int argc, char **argv)
 		break;
 		
 		case 6:
-		general_die(); 
+		exitcode = CHECK(packages, ROOT, mirror);
+		check_code(exitcode);	
 		break;
 		
 		}		
